@@ -1,5 +1,6 @@
 class SegmentTree:
     def __init__(self, n, initial, default_value, compare):
+        # initial:初期の配列。(treeではない)。これなしで普通にnだけで生成できる時もある。
         l = 1
         while l < n:
             l *= 2
@@ -17,9 +18,12 @@ class SegmentTree:
     def update(self, k, value):
         k = self.getIndex(k)
         self.tree[k] = value
-        while k > 0:
+        # 祖先ノードも更新する
+        while k > 0:  # ここを「k >= 0」で条件づけるとk = 0でループに入りバグる。
             k = (k - 1) // 2
-            self.tree[k] = self.compare(self.tree[k * 2 + 1], self.tree[k * 2 + 2])
+            self.tree[k] = self.compare(
+                self.tree[self.left_child(k)], self.tree[self.right_child(k)]
+            )
 
     def left_child(self, k):
         return 2 * k + 1
@@ -28,7 +32,9 @@ class SegmentTree:
         return 2 * k + 2
 
     def query(self, a, b):
-        # 区間(a,b]
+        # 区間[a,b)における最大値を求める。（元の配列で言うところの）
+        # k:今見ているノードのインデックス
+        # k:今見ているノードが元の配列の区間[l,r)に対応している。
         def q(k, a, b, l, r):
             if k >= self.length:
                 return self.default_value
